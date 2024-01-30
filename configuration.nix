@@ -21,7 +21,8 @@ in
 # Bootloader.
 	boot.loader.systemd-boot.enable = true;
 	boot.loader.efi.canTouchEfiVariables = true;
-
+	boot.kernelParams = ["nouveau.modeset=0"];
+	boot.blacklistedKernelModules = [ "nouveau"];
 	networking.hostName = "nixos"; # Define your hostname.
 # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
@@ -112,7 +113,6 @@ in
 		extraGroups = [ "networkmanager" "wheel" ];
 		packages = with pkgs; [
 			terminator
-				glxinfo
 				firefox-bin
 				chromium
 				discord
@@ -130,6 +130,9 @@ in
 				mupdf
 				flameshot
 				spotify
+				gcc
+				ripgrep
+				rPackages.mason
 		];
 	};
 
@@ -139,9 +142,12 @@ in
 # List packages installed in system profile. To search, run:
 # $ nix search wget
 	environment.systemPackages = with pkgs; [
-#  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-#  wget
- virtualglLib
+		vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+			wget
+			virtualglLib
+			glxinfo
+			pciutils
+			mesa
 	];
 
 # Some programs need SUID wrappers, can be configured further or are
@@ -169,12 +175,13 @@ in
 # this value at the release version of the first install of this system.
 # Before changing this value read the documentation for this option
 # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-	system.stateVersion = "23.05"; # Did you read the comment?
+	system.stateVersion = "23.11"; # Did you read the comment?
+
 		hardware.opengl = {
 			enable = true;
 			driSupport = true;
 			driSupport32Bit=true;
-			extraPackages = with pkgs;[ nvidia-vaapi-driver intel-media-driver]; 
+			extraPackages = with pkgs;[ vaapiVdpau nvidia-vaapi-driver intel-media-driver]; 
 		};
 	hardware.nvidia={
 		modesetting.enable = true;
@@ -214,4 +221,9 @@ in
 ########STOP_CHARGE_THRESH_BAT0 = 80;
 		};
 	};
+	services.picom = {
+		enable = false;
+	};
+	environment.interactiveShellInit = '' alias sudoemacs='sudo -E emacs'
+	'';
 }
